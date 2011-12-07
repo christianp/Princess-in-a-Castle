@@ -175,9 +175,10 @@
 					}
 				}
 			}
+			Room.radius = 20;
 			Room.pick = function(pos)
 			{
-				var min=10;
+				var min=Room.radius;
 				var picked;
 				for(var x in rooms)
 				{
@@ -294,11 +295,11 @@
 				//paper.js canvas stuff
 				paper.setup('graphCanvas');
 				layers.link = new Layer();
-				layers.room = new Layer();
 				layers.princess = new Layer();
+				layers.room = new Layer();
 				layers.edit = new Layer();
 
-				var circle = new Path.Circle(new Point(),10);
+				var circle = new Path.Circle(new Point(),Room.radius);
 				circle.strokeColor = 'black';
 				circle.fillColor = 'white';
 				circle.name = 'circle';
@@ -458,7 +459,7 @@
 				});
 
 				$('#buttons #animtime').change(function() {
-					animTime = 200-$(this).val();
+					animTime = 100-$(this).val();
 				});
 
 				$('#savedCastles .name').live('click',function() {
@@ -473,7 +474,7 @@
 
 				makeCastleList();
 
-				$('#animtime').val(200-animTime);
+				$('#animtime').val(100-animTime);
 
 				loadCastle('Four rooms in a line');
 			});
@@ -572,7 +573,7 @@
 					</div>
 					<div id="controls">
 						<span class="label">Animation speed:<span>
-						<input type="range" id="animtime" min="1" max="200"/>
+						<input type="range" id="animtime" min="1" max="100"/>
 					</div>
 				</div>
 			</div>
