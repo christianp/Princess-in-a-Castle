@@ -110,7 +110,7 @@
 				if(!safe)
 				{
 					strategy.done = state.done = true;
-					$('#strategy').append($('<span class="move done">Done in '+strategy.length+' moves!</span>'));
+					$('#strategy').append($('<span class="move done">Done in '+(strategy.length-1)+' moves!</span>'));
 				}
 				setCurrentMove(strategy.length-1);
 			}
@@ -327,6 +327,7 @@
 			$(window).ready(function() {
 				//paper.js canvas stuff
 				paper.setup('graphCanvas');
+
 				layers.link = new Layer();
 				layers.princess = new Layer();
 				layers.room = new Layer();
@@ -505,6 +506,17 @@
 					backtrack(i);
 				});
 
+				$('#snapshot').click(function() {
+					var lastMove = strategy.lastMove;
+					for(var i=0;i<strategy.length;i++)
+					{
+						backtrack(i);
+						view.draw();
+						var img = $('#graphCanvas')[0].toDataURL().replace('image/png','image/octet-stream');
+						var w = window.open(img,'_blank');
+					}
+				});
+
 				makeCastleList();
 
 				$('#animtime').val(100-animTime);
@@ -598,7 +610,7 @@
 				<canvas id="graphCanvas" width="400" height="400"></canvas>
 				<div id="buttons">
 					<div id="construction">
-						<span class="label">Construction:<span>
+						<span class="label">Construction:</span>
 						<button class="tool" id="addroom">Add a room</button>
 						<button class="tool" id="removeroom">Remove a room</button>
 						<button class="tool" id="linkrooms">Link rooms</button>
@@ -606,17 +618,20 @@
 						<button id="save">Save castle</button>
 					</div>
 					<div id="playing">
-						<span class="label">Playing:<span>
+						<span class="label">Playing:</span>
 						<button class="tool" id="look">Look in a room</button>
 						<button class="tool" id="toggle">Toggle a room</button>
 						<button id="reset">Reset rooms</button>
 					</div>
 					<div id="strategy">
-						<span class="label">Strategy<span>
+						<span class="label">Strategy</span>
 					</div>
 					<div id="controls">
-						<span class="label">Animation speed:<span>
+						<span class="label">Animation speed:</span>
 						<input type="range" id="animtime" min="1" max="100"/>
+					</div>
+					<div id="output">
+						<button id="snapshot">Save snapshot images</button>
 					</div>
 				</div>
 			</div>
@@ -636,6 +651,8 @@
 				<p>The castles I’ve provided are arranged roughly in order of difficulty.</p>
 				<p></p>
 				<p>There is some discussion of this puzzle on <a href="http://checkmyworking.com/2011/10/newcastle-mathsjam-october-2011-recap/">my blog</a>.
+				<p></p>
+				<p>The <em>save snapshot images</em> button will attempt to save images of each stage of your strategy. Because of browser problems, they'll get saved as something like <em>download (N)</em>, but they're all PNG files. Your browser may also complain about being asked to save so many files.</p>
 			</div>
 		</div>
 
