@@ -1,0 +1,581 @@
+<html>
+	<head>
+		<title>Princess on a Castle</title>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		<script type="text/javascript" src="paper.js"></script>
+		<script language="javascript">
+			paper.install(window);
+
+			var defaultCastles = {"Four rooms in a line":{"rooms":{"1":{"x":58,"y":204,"links":["2"]},"2":{"x":144,"y":203,"links":["1","3"]},"3":{"x":232,"y":203,"links":["2","4"]},"4":{"x":321,"y":204,"links":["3"]}}},"Five rooms in a line":{"rooms":{"1":{"x":42,"y":201,"links":["2"]},"2":{"x":103,"y":200,"links":["1","3"]},"3":{"x":163,"y":200,"links":["2","4"]},"4":{"x":230,"y":201,"links":["3","5"]},"5":{"x":309,"y":200,"links":["4"]}}},"Three spokes of length 1":{"rooms":{"1":{"x":191,"y":202,"links":["2","3","4"]},"2":{"x":184,"y":148,"links":["1"]},"3":{"x":253,"y":206,"links":["1"]},"4":{"x":158,"y":250,"links":["1"]}}},"Three spokes of length 2":{"rooms":{"1":{"x":191,"y":202,"links":["2","3","4"]},"2":{"x":184,"y":148,"links":["1","5"]},"3":{"x":249,"y":208,"links":["1","6"]},"4":{"x":158,"y":250,"links":["1","7"]},"5":{"x":178,"y":96,"links":["2"]},"6":{"x":305,"y":216,"links":["3"]},"7":{"x":129,"y":295,"links":["4"]}}},"Three spokes of length 3":{"rooms":{"1":{"x":191,"y":202,"links":["2","3","4"]},"2":{"x":184,"y":148,"links":["1","5"]},"3":{"x":249,"y":208,"links":["1","6"]},"4":{"x":158,"y":250,"links":["1","7"]},"5":{"x":178,"y":96,"links":["2","8"]},"6":{"x":305,"y":216,"links":["3","9"]},"7":{"x":129,"y":295,"links":["4","10"]},"8":{"x":171,"y":53,"links":["5"]},"9":{"x":350,"y":224,"links":["6"]},"10":{"x":102,"y":337,"links":["7"]}}}};
+
+			var state;
+			var castles = JSON.parse(localStorage.castles || '{}');
+			for(var x in defaultCastles)
+				castles[x] = defaultCastles[x];
+			var lastName;
+			var labelacc = 1;
+			var layers = {};
+			var anim, animTime = 25;
+			var strategy = [];
+
+			function makeCastleList()
+			{
+				$('#savedCastles #list').empty();
+				for(var x in castles)
+				{
+					$('#savedCastles #list').append($('<div class="name"/>').html(x));
+				}
+			}
+
+			function saveCastle(name,castle)
+			{
+				castles[name] = castle;
+				localStorage.castles = JSON.stringify(castles);
+				makeCastleList();
+			}
+
+			function loadCastle(castle)
+			{
+				if(typeof(castle)=='string')
+				{
+					lastName = castle;
+					castle = castles[castle];
+				}
+
+				anim = null;
+				for(var i=0;i<project.layers.length;i++)
+				{
+					project.layers[i].removeChildren();
+				}
+
+				rooms = {};
+				for(var label in castle.rooms)
+				{
+					var data = castle.rooms[label];
+					var room = new Room(new Point(data.x,data.y),label);
+				}
+				for(var label in castle.rooms)
+				{
+					for(var i=0;i<castle.rooms[label].links.length;i++)
+					{
+						var label2 = castle.rooms[label].links[i];
+						if(!(label2 in rooms[label].links))
+							new Link(rooms[label],rooms[label2]);
+					}
+				}
+
+				resetStrategy();
+			}
+
+			function resetStrategy()
+			{
+				strategy = [];
+				$('#strategy .move').remove();
+			}
+
+			function saveMove(room)
+			{
+				var state = {rooms:{}}
+				var safe=false;
+				for(var label in rooms)
+				{
+					state.rooms[label] = rooms[label].occupiable;
+					safe |= rooms[label].occupiable;
+				}
+				strategy.push(state);
+
+				$('#strategy').append($('<span class="move real"></span>').html(room));
+				if(!safe)
+				{
+					strategy.done = state.done = true;
+					$('#strategy').append($('<span class="move done">Done!</span>'));
+				}
+			}
+
+			function backtrack(i)
+			{
+				var state = strategy[i];
+				strategy.splice(i+1);
+				for(var label in state.rooms)
+					rooms[label].toggle(state.rooms[label]);
+				strategy.done = state.done;
+				$('#strategy .move').eq(i).nextAll(strategy.done ? ':not(.done)' : '').fadeOut(100,function(){$(this).remove()});
+			}
+			
+			var rooms = {};
+			function Room(position,label)
+			{
+				this.position = position;
+				labelacc++;
+				for(var i=1;i<labelacc;i++)
+				{
+					if(!rooms[i])
+					{
+						this.label = i;
+						break;
+					}
+				}
+				rooms[this.label] = this;
+
+				this.symbol = this.symbol.clone();
+				this.symbol.children['text'].content = this.label;
+				this.symbol.position = this.position;
+				this.symbol.visible = true;
+				layers.room.addChild(this.symbol); 
+
+				this.links = {};
+			}
+			Room.prototype = {
+				occupiable: true,
+
+				move: function(position)
+				{
+					this.position = this.symbol.position = position;
+					for(var x in this.links)
+					{
+						this.links[x].update();
+					}
+				},
+
+				look: function() 
+				{
+					this.toggle(false);
+					Room.animate(this.label);
+				},
+
+				toggle: function(state)
+				{
+					if(state!==undefined)
+					{
+						this.occupiable = state;
+					}
+					else
+					{
+						this.occupiable = !this.occupiable;
+					}
+					this.symbol.children.circle.fillColor.gray = this.occupiable ? 0 : 0.5;
+				},
+
+				die: function()
+				{
+					delete rooms[this.label];
+					this.symbol.remove();
+					for(var x in this.links)
+					{
+						this.links[x].die();
+					}
+				},
+			}
+			Room.pick = function(pos)
+			{
+				var min=10;
+				var picked;
+				for(var x in rooms)
+				{
+					var r = rooms[x];
+					var delta = r.position.subtract(pos).length;
+					r.symbol.selected = false;
+					if(delta<min)
+					{
+						min = delta;
+						picked = r;
+					}
+				}
+				if(picked)
+				{
+					picked.symbol.selected = true;
+					return picked;
+				}
+			}
+
+			Room.animate = function(moved) {
+				for(var x in rooms)
+				{
+					rooms[x].occupiable2 = false;
+				}
+
+				var princesses = [];
+				for(var x in rooms)
+				{
+					var room = rooms[x];
+					if(room.occupiable)
+					{
+						for(var y in room.links)
+						{
+							rooms[y].occupiable2 = true;
+							princesses.push(new Princess(room,rooms[y]));
+						}
+					}
+				}
+				var t = 0;
+				anim = function(event) {
+					for(var x in rooms)
+					{
+						var g1 = rooms[x].occupiable ? 0 : .5;
+						var g2 = rooms[x].occupiable2 ? 0 : .5;
+						rooms[x].symbol.children.circle.fillColor.gray = g1*(1-t)+g2*t;
+					}
+					for(var i=0;i<princesses.length;i++)
+					{
+						princesses[i].update(t);
+					}
+					t += 1/animTime;
+					if(t>1)
+					{
+						anim = null;
+						for(var x in rooms)
+						{
+							rooms[x].toggle(rooms[x].occupiable2);
+						}
+						for(var i=0;i<princesses.length;i++)
+						{
+							princesses[i].die();
+						}
+						saveMove(moved);
+					}
+				}
+			}
+
+			function Link(room1,room2)
+			{
+				this.room1 = room1;
+				this.room2 = room2;
+				room1.links[room2.label] = this;
+				room2.links[room1.label] = this;
+				var path = this.path = new Path();
+				path.strokeColor = 'black';
+				path.add(room1.position);
+				path.add(room2.position);
+				layers.link.addChild(path);
+			}
+			Link.prototype = {
+				update: function()
+				{
+					this.path.firstSegment.point = this.room1.position;
+					this.path.lastSegment.point = this.room2.position;
+				},
+
+				die: function() {
+					delete this.room1.links[this.room2.label];
+					delete this.room2.links[this.room1.label];
+					this.path.remove();
+				}
+			};
+
+			function Princess(room1,room2)
+			{
+				this.room1 = room1;
+				this.room2 = room2;
+				this.symbol = Princess.symbol.place();
+				layers.princess.addChild(this.symbol);
+			}
+			Princess.prototype = {
+				update: function(t) {
+					this.symbol.position.x = this.room1.position.x*(1-t) + this.room2.position.x*t;
+					this.symbol.position.y = this.room1.position.y*(1-t) + this.room2.position.y*t;
+				},
+
+				die: function() {
+					this.symbol.remove();
+				}
+			};
+
+
+			$(window).ready(function() {
+				//paper.js canvas stuff
+				paper.setup('graphCanvas');
+				layers.link = new Layer();
+				layers.room = new Layer();
+				layers.princess = new Layer();
+				layers.edit = new Layer();
+
+				var circle = new Path.Circle(new Point(),10);
+				circle.strokeColor = 'black';
+				circle.fillColor = 'white';
+				circle.name = 'circle';
+				var text = new PointText(new Point(0,5),0);
+				text.name = 'text';
+				text.paragraphStyle.justification = 'center';
+				var symbol = Room.prototype.symbol = new Group([circle,text]);
+				symbol.visible = false;
+
+				var circle = new Path.Circle(new Point(),3);
+				circle.fillColor = 'red';
+				Princess.symbol = new Symbol(circle);
+
+				var tools = {};
+
+				var addRoomTool = tools.addroom = new Tool();
+				addRoomTool.onMouseMove = function(event) {
+					Room.pick(event.point);
+				}
+				addRoomTool.onMouseDown = function(event) {
+					var room = Room.pick(event.point);
+					if(!room)
+					{
+						room = new Room(event.point);
+					}
+					addRoomTool.room = room;
+				}
+				addRoomTool.onMouseDrag = function(event) {
+					addRoomTool.room.move(event.point);
+				}
+
+				var removeRoomTool = tools.removeroom = new Tool();
+				removeRoomTool.onMouseMove = function(event) {
+					Room.pick(event.point);
+				}
+				removeRoomTool.onMouseUp = function(event) {
+					var room = Room.pick(event.point);
+					if(room)
+						room.die();
+				}
+
+
+
+				var linkRoomTool = tools.linkrooms = new Tool();
+				linkRoomTool.onMouseMove = function(event) {
+					Room.pick(event.point);
+				}
+				linkRoomTool.onMouseDown = function(event) {
+					var room = linkRoomTool.room = Room.pick(event.point);
+					if(!room)
+						return;
+					var path = linkRoomTool.path = new Path();
+					path.strokeColor = 'black';
+					path.dashArray = [5,6];
+					path.add(room.position);
+					path.add(new Point(room.position));
+				}
+				linkRoomTool.onMouseDrag = function(event) {
+					if(!linkRoomTool.room)
+						return;
+					linkRoomTool.path.lastSegment.point = event.point;
+				}
+				linkRoomTool.onMouseUp = function(event) {
+					var room1 = linkRoomTool.room;
+					if(!room1)
+						return;
+					linkRoomTool.path.remove();
+
+					var room2 = Room.pick(event.point);
+					if(!room2 || room2==room1)
+					{
+						return;
+					}
+
+					if(room2.label in room1.links)
+						room1.links[room2.label].die();
+					else
+						var link = new Link(room1,room2);
+				}
+		
+				var lookTool = tools.look = new Tool()
+				lookTool.onMouseMove = function(event) {
+					Room.pick(event.point);
+				}
+				lookTool.onMouseUp = function(event) {
+					if(strategy.done)
+						return;
+					if(anim)
+						return;
+					var room = Room.pick(event.point);
+					if(!room)
+						return;
+
+					room.look();
+				}
+
+				var toggleTool = tools.toggle = new Tool()
+				toggleTool.onMouseMove = function(event) {
+					Room.pick(event.point);
+				}
+				toggleTool.onMouseUp = function(event) {
+					var room = Room.pick(event.point);
+					if(!room)
+						return;
+
+					room.toggle();
+				}
+
+				view.onFrame = function(event)
+				{
+					if(anim)
+						anim(event);
+				}
+
+
+				//buttons
+				$('#buttons button.tool').click(function() {
+					state = $(this).attr('id');
+					$('#buttons button').removeClass('selected');
+					$(this).addClass('selected');
+					tools[state].activate();
+				});
+
+				$('#buttons #look').click();
+
+				$('#buttons #reset').click(function() {
+					for(var x in rooms)
+					{
+						rooms[x].toggle(true);
+					}
+					resetStrategy();
+				});
+				$('#buttons #clear').click(function() {
+					for(var x in rooms)
+					{
+						rooms[x].die();
+					}
+				});
+		
+				$('#buttons #save').click(function() {
+					var name = prompt('Name your castle',lastName || 'my castle');
+					if(!name) { return; }
+					lastName = name;
+					var castle = {rooms: {}};
+					for(var x in rooms) {
+						var room = {}
+						room.x = rooms[x].position.x;
+						room.y = rooms[x].position.y;
+						room.links = [];
+						for(var y in rooms[x].links)
+						{
+							room.links.push(y);
+						}
+						castle.rooms[x] = room;
+					}
+					saveCastle(name,castle);
+				});
+
+				$('#buttons #animtime').change(function() {
+					animTime = 200-$(this).val();
+				});
+
+				$('#savedCastles .name').live('click',function() {
+					var name = $(this).html();
+					loadCastle(name);
+				});
+
+				$('#strategy .move.real').live('click',function() {
+					var i = $('#strategy .move.real').index(this);
+					backtrack(i);
+				});
+
+				makeCastleList();
+
+				$('#animtime').val(200-animTime);
+
+				loadCastle('Four rooms in a line');
+			});
+		</script>
+
+		<style type="text/css">
+			.container {
+			}
+			.interface {
+				float:left;
+				position:relative;
+				display:inline-block;
+				padding: 0 1em 1em 1em;
+			}
+			#graphCanvas {
+				border: 1px solid black;
+			}
+			#buttons button.selected {
+				color: #00f;
+			}
+			#buttons .label {
+				margin-right: 2em;
+				display: paragraph;
+			}
+			#savedCastles {
+				position: absolute;
+				right: 0;
+				text-align:right;
+				margin-right: 1em;
+				padding: 0.5em;
+				border: 1px solid black;
+			}
+			#savedCastles h2 {
+				margin-top: 0;
+				margin-bottom: 0.5em;
+			}
+			#savedCastles .name {
+				font-family: sans-serif;
+				color: magenta;
+			}
+			#savedCastles .name:hover {
+				cursor: hand;
+				color: blue;
+			}
+
+			#strategy .move {
+				font-size: 1.5em;
+				padding: 0 0.25em;
+			}
+			#strategy .move.real:hover {
+				cursor: hand;
+				color: blue;
+			}
+			#strategy .move.done {
+				color: blue;
+			}
+
+			.explanation {
+				font-size: 1em;
+			}
+			.explanation h1 {
+				text-align: center;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<div class="interface">
+				<div id="savedCastles">
+					<h2>Load a Castle</h2>
+					<div id="list"></div>
+				</div>
+				<canvas id="graphCanvas" width="400" height="400"></canvas>
+				<div id="buttons">
+					<div id="construction">
+						<span class="label">Construction:<span>
+						<button class="tool" id="addroom">Add a room</button>
+						<button class="tool" id="removeroom">Remove a room</button>
+						<button class="tool" id="linkrooms">Link rooms</button>
+						<button id="clear">Clear castle</button>
+						<button id="save">Save castle</button>
+					</div>
+					<div id="playing">
+						<span class="label">Playing:<span>
+						<button class="tool" id="look">Look in a room</button>
+						<button class="tool" id="toggle">Toggle a room</button>
+						<button id="reset">Reset rooms</button>
+					</div>
+					<div id="strategy">
+						<span class="label">Strategy<span>
+					</div>
+					<div id="controls">
+						<span class="label">Animation speed:<span>
+						<input type="range" id="animtime" min="1" max="200"/>
+					</div>
+				</div>
+			</div>
+			<div class="explanation">
+				<h1>Princess in a Castle</h1>
+				<p>There is a castle with a resident Princess. Each night, the Princess picks a room to sleep in. The room she picks must be directly adjacent to the one she slept in the night before. On the first night, she can pick any room.</p>
+				<p>You are not told anything about the Princess’s whereabouts each night, but you may have a look in one room each night. If you pick the room the Princess is in then she will marry you; if not, you can try again the next night.</p>
+				<p>The idea of the game is to either find a sequence which is guaranteed to find the Princess, or to prove that no such sequence exists.</p>
+				<p></p>
+				<p>Use the construction controls to design a castle layout. You can save your castle and it will appear in the list on the right-hand side.</p>
+				<p>Once your castle is complete, use the <em>look in a room</em> button to play the game. If it’s possible for the Princess to be in a room at a particular point in time, it will be white. If she can’t be there, it will be grey.</p>
+				<p>Each time you look in a room, the next night’s possible Princess moves are shown.</p>
+				<p>When all the rooms are grey, that means you have found a sequence of rooms which are guaranteed to find the Princess, no matter what she does.</p>
+				<p>To aid with your deliberations, you can use the <em>toggle rooms</em> button to put the rooms in a particular state of occupancy.</p>
+				<p></p>
+				<p>The castles I’ve provided are arranged roughly in order of difficulty.</p>
+			</div>
+		</div>
+	</body>
+</html>
