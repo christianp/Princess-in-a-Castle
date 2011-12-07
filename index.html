@@ -80,10 +80,12 @@
 			{
 				strategy = [];
 				$('#strategy .move').remove();
+				saveMove('start');
 			}
 
 			function saveMove(room)
 			{
+				strategy.splice((strategy.lastMove || 0)+1);
 				var state = {rooms:{}}
 				var safe=false;
 				for(var label in rooms)
@@ -91,24 +93,55 @@
 					state.rooms[label] = rooms[label].occupiable;
 					safe |= rooms[label].occupiable;
 				}
+
+				var equal = false;
+				for(var i=0;i<strategy.length && !equal;i++)
+				{
+					equal |= statesEqual(state,strategy[i]);
+				}
+
+				$('#strategy .move').eq(strategy.lastMove).nextAll().remove();
+
 				strategy.push(state);
 
-				$('#strategy').append($('<span class="move real"></span>').html(room));
+				var move = $('<span class="move real"></span>').html(room);
+				if(equal){ move.addClass('repeat'); }
+				$('#strategy').append(move);
 				if(!safe)
 				{
 					strategy.done = state.done = true;
 					$('#strategy').append($('<span class="move done">Done in '+strategy.length+' moves!</span>'));
 				}
+				setCurrentMove(strategy.length-1);
+			}
+
+			function statesEqual(s1,s2)
+			{
+				for(var label in s1.rooms)
+				{
+					if(s1.rooms[label]!=s2.rooms[label])
+						return false;
+				}
+				return true;
 			}
 
 			function backtrack(i)
 			{
 				var state = strategy[i];
-				strategy.splice(i+1);
 				for(var label in state.rooms)
 					rooms[label].toggle(state.rooms[label]);
 				strategy.done = state.done;
-				$('#strategy .move').eq(i).nextAll(strategy.done ? ':not(.done)' : '').fadeOut(100,function(){$(this).remove()});
+
+				setCurrentMove(i);
+			}
+			function setCurrentMove(i)
+			{
+				$('#strategy .move').removeClass('backtracked current');
+
+				var move = $('#strategy .move').eq(i);
+				move.nextAll('.real').addClass('backtracked');
+				move.addClass('current');
+				strategy.lastMove = i;
 			}
 			
 			var rooms = {};
@@ -529,9 +562,19 @@
 				font-size: 1.5em;
 				padding: 0 0.25em;
 			}
+			#strategy .move.repeat {
+				border: 2px solid red;
+				color: red;
+			}
 			#strategy .move.real:hover {
 				cursor: hand;
 				color: blue;
+			}
+			#strategy .move.current {
+				background: yellow;
+			}
+			#strategy .move.backtracked {
+				color: #ddd;
 			}
 			#strategy .move.done {
 				color: blue;
@@ -588,6 +631,7 @@
 				<p>Each time you look in a room, the next night’s possible Princess moves are shown.</p>
 				<p>When all the rooms are grey, that means you have found a sequence of rooms which are guaranteed to find the Princess, no matter what she does.</p>
 				<p>To aid with your deliberations, you can use the <em>toggle a room</em> button to put a room in a particular state of occupancy.</p>
+				<p>When a move in the <em>Strategy</em> list is displayed in red, that means that the state of the castle is a repeat of one encountered earlier in the strategy, so that move can not be part of the shortest solution.</p>
 				<p></p>
 				<p>The castles I’ve provided are arranged roughly in order of difficulty.</p>
 				<p></p>
