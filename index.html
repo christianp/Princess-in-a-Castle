@@ -507,6 +507,10 @@
 				});
 
 				$('#snapshot').click(function() {
+					var img = $('#graphCanvas')[0].toDataURL().replace('image/png','image/octet-stream');
+					var w = window.open(img,'_blank');
+				});
+				$('#snapshots').click(function() {
 					var lastMove = strategy.lastMove;
 					for(var i=0;i<strategy.length;i++)
 					{
@@ -515,6 +519,7 @@
 						var img = $('#graphCanvas')[0].toDataURL().replace('image/png','image/octet-stream');
 						var w = window.open(img,'_blank');
 					}
+					backtrack(lastMove);
 				});
 
 				makeCastleList();
@@ -631,7 +636,8 @@
 						<input type="range" id="animtime" min="1" max="100"/>
 					</div>
 					<div id="output">
-						<button id="snapshot">Save snapshot images</button>
+						<button id="snapshot">Save snapshot of current state</button>
+						<button id="snapshots">Save snapshots of whole strategy</button>
 					</div>
 				</div>
 			</div>
@@ -652,7 +658,7 @@
 				<p></p>
 				<p>There is some discussion of this puzzle on <a href="http://checkmyworking.com/2011/10/newcastle-mathsjam-october-2011-recap/">my blog</a>.
 				<p></p>
-				<p>The <em>save snapshot images</em> button will attempt to save images of each stage of your strategy. Because of browser problems, they'll get saved as something like <em>download (N)</em>, but they're all PNG files. Your browser may also complain about being asked to save so many files.</p>
+				<p>The <em>save snapshot images</em> buttons will attempt to save images of either the current state or of your whole strategy. Because of browser problems, they'll get saved as something like <em>download (N)</em>, but they're all PNG files. Your browser may also complain about being asked to save so many files.</p>
 			</div>
 		</div>
 
