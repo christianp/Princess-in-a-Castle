@@ -3,6 +3,7 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=100" >
 		<title>Princess in a Castle</title>
 		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		<script type="text/javascript" src="modernizr.js"></script>
 		<script type="text/javascript" src="paper.js"></script>
 		<script language="javascript">
 			paper.install(window);
@@ -478,6 +479,8 @@
 			});
 		</script>
 
+		<link rel="stylesheet" href="normalize.css"></link>
+
 		<style type="text/css">
 			.container {
 			}
@@ -489,6 +492,9 @@
 			}
 			#graphCanvas {
 				border: 1px solid black;
+			}
+			#buttons > div {
+				margin: 0.5em 0;
 			}
 			#buttons button.selected {
 				color: #00f;
@@ -580,10 +586,14 @@
 				<p>Once your castle is complete, use the <em>look in a room</em> button to play the game. If it’s possible for the Princess to be in a room at a particular point in time, it will be white. If she can’t be there, it will be grey.</p>
 				<p>Each time you look in a room, the next night’s possible Princess moves are shown.</p>
 				<p>When all the rooms are grey, that means you have found a sequence of rooms which are guaranteed to find the Princess, no matter what she does.</p>
-				<p>To aid with your deliberations, you can use the <em>toggle rooms</em> button to put the rooms in a particular state of occupancy.</p>
+				<p>To aid with your deliberations, you can use the <em>toggle a room</em> button to put a room in a particular state of occupancy.</p>
 				<p></p>
 				<p>The castles I’ve provided are arranged roughly in order of difficulty.</p>
+				<p></p>
+				<p>There is some discussion of this puzzle on <a href="http://checkmyworking.com/2011/10/newcastle-mathsjam-october-2011-recap/">my blog</a>.
 			</div>
 		</div>
+
+<a rel="license" href="http://creativecommons.org/licenses/by/3.0/"><img alt="Creative Commons Licence" style="border-width:0" src="http://i.creativecommons.org/l/by/3.0/80x15.png" /></a><br /><span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/InteractiveResource" property="dct:title" rel="dct:type">Princess in a Castle</span> by <a xmlns:cc="http://creativecommons.org/ns#" href="http://checkmyworking.com" property="cc:attributionName" rel="cc:attributionURL">Christian Perfect</a> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 Unported License</a>.
 	</body>
 </html>
