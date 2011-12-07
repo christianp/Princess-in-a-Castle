@@ -51,9 +51,9 @@
 				}
 
 				anim = null;
-				for(var i=0;i<project.layers.length;i++)
+				for(var i=0;i<paper.project.layers.length;i++)
 				{
-					project.layers[i].removeChildren();
+					paper.project.layers[i].removeChildren();
 				}
 
 				rooms = {};
@@ -406,7 +406,7 @@
 					room.toggle();
 				}
 
-				view.onFrame = function(event)
+				paper.view.onFrame = function(event)
 				{
 					if(anim)
 						anim(event);
