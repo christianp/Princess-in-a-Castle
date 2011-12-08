@@ -29,7 +29,7 @@
 			var automorphisms;
 			var doingloads = false;
 
-			function makeCastle()
+			function makeCastle(name)
 			{
 				var castle = {rooms: {}};
 				for(var x in rooms) {
@@ -744,7 +744,7 @@
 					var name = prompt('Name your castle',lastName || 'my castle');
 					if(!name) { return; }
 					lastName = name;
-					var castle = makeCastle();
+					var castle = makeCastle(name);
 					saveCastle(name,castle);
 				});
 
