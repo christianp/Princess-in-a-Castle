@@ -26,6 +26,8 @@
 			var layers = {};
 			var anim, animTime = 25;
 			var strategy = [];
+			var automorphisms;
+			var doingloads = false;
 
 			function makeCastleList()
 			{
@@ -45,6 +47,8 @@
 
 			function loadCastle(castle)
 			{
+				doingloads = true;
+
 				if(typeof(castle)=='string')
 				{
 					lastName = castle;
@@ -73,11 +77,16 @@
 					}
 				}
 
-				resetStrategy();
+				doingloads = false;
+				graphChanged();
 			}
 
 			function resetStrategy()
 			{
+				for(var x in rooms)
+				{
+					rooms[x].toggle(true);
+				}
 				strategy = [];
 				$('#strategy .move').remove();
 				saveMove('start');
@@ -94,10 +103,36 @@
 					safe |= rooms[label].occupiable;
 				}
 
+				var states = [];
+				if(automorphisms)
+				{
+					for(var i=0;i<automorphisms.length;i++)
+					{
+						var s2 = {rooms:{}}
+						var p = automorphisms[i];
+						for(var label in rooms)
+						{
+							s2.rooms[label] = state.rooms[p[label]];
+						}
+						states.push(s2);
+					}
+				}
+				else
+				{
+					states = [state];
+				}
+
 				var equal = false;
 				for(var i=0;i<strategy.length && !equal;i++)
 				{
-					equal |= statesEqual(state,strategy[i]);
+					for(var j=0;j<states.length;j++)
+					{
+						if(statesEqual(states[j],strategy[i]))
+						{
+							equal = true;
+							break;
+						}
+					}
 				}
 
 				$('#strategy .move').eq(strategy.lastMove).nextAll().remove();
@@ -143,6 +178,192 @@
 				move.addClass('current');
 				strategy.lastMove = i;
 			}
+
+			var sortLists = function(a,b) {
+				if(a.length!=b.length)
+				{
+					return a.length>b.length ? 1 : -1;
+				}
+				for(var i=0;i<a.length;i++)
+				{
+					var d = sortLists(a[i],b[i]);
+					if(d!=0)
+						return d;
+				}
+				return 0;
+			}
+			function equivalenceClasses(dict,cmp)
+			{
+				if(cmp===undefined)
+					cmp=sortLists;
+
+				var classes = [];
+				for(var x in dict)
+				{
+					var got = false;
+					for(var i=0;i<classes.length;i++)
+					{
+						if(cmp(dict[x],classes[i][0])==0)
+						{
+							classes[i].push(dict[x]);
+							got=true;
+							break;
+						}
+					}
+					if(!got)
+					{
+						classes.push([dict[x]]);
+					}
+				}
+				return classes;
+			}
+
+			function isTree(tree)
+			{
+				function check(label,checked,from){
+					if(checked===undefined)
+						checked=[];
+					checked.push(label);
+					for(var x in tree[label].links)
+					{
+						if(x!=from && (checked.indexOf(x)>=0 || check(x,checked,label)==false))
+							return false;
+					}
+					return true;
+				}
+				var root = (function(){for(var x in tree){return x}})();
+				if(root)
+					return check(root);
+			}
+
+			function symmetries(tree)
+			{
+				if(!isTree(tree))
+					return;
+
+				var canonicals = {};
+				for(var x in tree)
+				{
+					canonicals[x]=tree[x].canonise();
+				}
+				var generators = [new Permutation()];
+				for(var x in tree)
+				{
+					var c = {};
+					for(var y in tree[x].links)
+					{
+						c[y] = tree[y].canonise(x);
+						if(x>y && sortLists(canonicals[x],canonicals[y])==0)
+						{
+							generators.push(new Permutation(rooms[x].canonise(y),rooms[y].canonise(x)));
+						}
+					}
+					var rc = equivalenceClasses(c).filter(function(i){return i.length>1});
+					for(var i=0;i<rc.length;i++)
+					{
+						for(var j=0;j<rc[i].length;j++)
+						{
+							for(var k=j+1;k<rc[i].length;k++)
+							{
+								generators.push(new Permutation(rc[i][j],rc[i][k]));
+							}
+						}
+					}
+				}
+				return closePermutations(generators);
+			}
+
+			function Permutation(c1,c2,nofill)
+			{
+				if(!nofill)
+				{
+					for(var x in rooms)
+						this[x]=x;
+				}
+				if(!c1)
+					return;
+
+				this[c1.label] = c2.label;
+				this[c2.label] = c1.label;
+				for(var i=0;i<c1.length;i++)
+				{
+					Permutation.apply(this,[c1[i],c2[i],true]);
+				}
+			}
+			Permutation.prototype = {
+				eq: function(p2)
+				{
+					for(var x in this)
+					{
+						if(p2[x]!=this[x])
+							return false;
+					}
+					return true;
+				},
+
+				mul: function(p2)
+				{
+					var p3 = new Permutation();
+					for(var x in rooms)
+					{
+						p3[x] = p2[this[x]];
+					}
+					return p3;
+				},
+				toString: function()
+				{
+					var labels = [];
+					var cycles = [];
+					for(var label in rooms)
+					{
+						if(labels.indexOf(label)==-1)
+						{
+							var cycle = [label];
+							labels.push(label);
+							cycles.push(cycle);
+							var c = this[label];
+							while(c!=label)
+							{
+								labels.push(c);
+								cycle.push(c);
+								c=this[c];
+							}	
+						}
+					}
+					return '('+cycles.join(') (')+')';
+				}
+			}
+
+			function closePermutations(perms)
+			{
+				for(var i=0;i<perms.length;i++)
+				{
+					for(var j=i;j<perms.length;j++)
+					{
+						var p3 = perms[i].mul(perms[j]);
+						var got = false;
+						for(var k=0;k<perms.length;k++)
+						{
+							if(p3.eq(perms[k]))
+							{
+								got=true;
+								break;
+							}
+						}
+						if(!got)
+							perms.push(p3);
+					}
+				}
+				return perms;
+			}
+
+			function graphChanged()
+			{
+				if(doingloads)
+					return;
+				automorphisms = symmetries(rooms);
+				resetStrategy();
+			}
 			
 			var rooms = {};
 			function Room(position,label)
@@ -166,6 +387,8 @@
 				layers.room.addChild(this.symbol); 
 
 				this.links = {};
+
+				graphChanged();
 			}
 			Room.prototype = {
 				occupiable: true,
@@ -206,9 +429,24 @@
 					{
 						this.links[x].die();
 					}
-				}
+					graphChanged();
+				},
+
+				canonise: function(from) {
+					var kids = [];
+					for(var x in this.links)
+					{
+						if(x!=from)
+						{
+							kids.push(rooms[x].canonise(this.label));
+						}
+					}
+					kids.sort(sortLists);
+					kids.label = this.label;
+					return kids;
+				},
 			}
-			Room.radius = 20;
+			Room.radius = 15;
 			Room.pick = function(pos)
 			{
 				var min=Room.radius;
@@ -290,6 +528,8 @@
 				path.add(room1.position);
 				path.add(room2.position);
 				layers.link.addChild(path);
+
+				graphChanged();
 			}
 			Link.prototype = {
 				update: function()
@@ -302,6 +542,8 @@
 					delete this.room1.links[this.room2.label];
 					delete this.room2.links[this.room1.label];
 					this.path.remove();
+
+					graphChanged();
 				}
 			};
 
@@ -460,17 +702,16 @@
 				$('#buttons #look').click();
 
 				$('#buttons #reset').click(function() {
-					for(var x in rooms)
-					{
-						rooms[x].toggle(true);
-					}
 					resetStrategy();
 				});
 				$('#buttons #clear').click(function() {
+					doingloads = true;
 					for(var x in rooms)
 					{
 						rooms[x].die();
 					}
+					doingloads = false;
+					graphChanged();
 				});
 		
 				$('#buttons #save').click(function() {
@@ -657,7 +898,7 @@
 				<p>Each time you look in a room, the next night’s possible Princess moves are shown.</p>
 				<p>When all the rooms are grey, that means you have found a sequence of rooms which are guaranteed to find the Princess, no matter what she does.</p>
 				<p>To aid with your deliberations, you can use the <em>toggle a room</em> button to put a room in a particular state of occupancy.</p>
-				<p>When a move in the <em>Strategy</em> list is displayed in red, that means that the state of the castle is a repeat of one encountered earlier in the strategy, so that move can not be part of the shortest solution.</p>
+				<p>When a move in the <em>Strategy</em> list is displayed in red, that means that the state of the castle is a repeat of one encountered earlier in the strategy, so that move can not be part of the shortest solution. The symmetry of the graph is computed, so if one state looks like a previous one with an automorphism of the graph applied to it, the new move is marked as a repeat.</p>
 				<p></p>
 				<p>The castles I’ve provided are arranged roughly in order of difficulty.</p>
 				<p></p>
