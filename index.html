@@ -244,43 +244,41 @@
 				return classes;
 			}
 
-			function isTree(tree)
+			function isTree()
 			{
 				function check(label,checked,from){
 					if(checked===undefined)
 						checked=[];
 					checked.push(label);
-					for(var x in tree[label].links)
+					for(var x in rooms[label].links)
 					{
 						if(x!=from && (checked.indexOf(x)>=0 || check(x,checked,label)==false))
 							return false;
 					}
 					return true;
 				}
-				var root = (function(){for(var x in tree){return x}})();
+				var root = (function(){for(var x in rooms){return x}})();
 				if(root)
 					return check(root);
 			}
 
-			function symmetries(tree)
+			function symmetries()
 			{
-				if(!isTree(tree))
+				if(!isTree())
 					return;
 
-				var canonicals = {};
-				for(var x in tree)
-				{
-					canonicals[x]=tree[x].canonise();
-				}
-				var generators = [new Permutation()];
-				for(var x in tree)
+				for(var x in rooms)
+					rooms[x].canonicals={};
+				var generators = [];
+				for(var x in rooms)
 				{
 					var c = {};
-					for(var y in tree[x].links)
+					for(var y in rooms[x].links)
 					{
-						c[y] = tree[y].canonise(x);
-						if(x>y && sortLists(canonicals[x],canonicals[y])==0)
+						c[y]=rooms[y].canonise(x);
+						if(x>y && sortLists(rooms[x].canonise(),rooms[y].canonise())==0)
 						{
+							//reflection in edge x--y
 							generators.push(new Permutation(rooms[x].canonise(y),rooms[y].canonise(x)));
 						}
 					}
@@ -291,6 +289,7 @@
 						{
 							for(var k=j+1;k<rc[i].length;k++)
 							{
+								//swap rc[i][j] and rc[i][k] around x
 								generators.push(new Permutation(rc[i][j],rc[i][k]));
 							}
 						}
@@ -360,8 +359,14 @@
 				}
 			}
 
-			function closePermutations(perms)
+			function closePermutations(gens)
 			{
+				var perms = [new Permutation(),gens[0]];
+				for(var i=1;i<gens.length;i++)
+				{
+					perms = perms.concat(perms.map(function(p){return gens[i].mul(p);}));
+				}
+				/*
 				for(var i=0;i<perms.length;i++)
 				{
 					for(var j=i;j<perms.length;j++)
@@ -370,6 +375,7 @@
 						var got = false;
 						for(var k=0;k<perms.length;k++)
 						{
+							steps++;
 							if(p3.eq(perms[k]))
 							{
 								got=true;
@@ -380,6 +386,8 @@
 							perms.push(p3);
 					}
 				}
+				console.log(steps,' steps in closing permutation group');
+				*/
 				return perms;
 			}
 
@@ -387,7 +395,7 @@
 			{
 				if(doingloads)
 					return;
-				automorphisms = symmetries(rooms);
+				automorphisms = symmetries();
 				resetStrategy();
 			}
 			
@@ -418,6 +426,7 @@
 			}
 			Room.prototype = {
 				occupiable: true,
+				canonicals: {},
 
 				move: function(position)
 				{
@@ -459,6 +468,8 @@
 				},
 
 				canonise: function(from) {
+					if(from in this.canonicals)
+						return this.canonicals[from];
 					var kids = [];
 					for(var x in this.links)
 					{
@@ -469,6 +480,7 @@
 					}
 					kids.sort(sortLists);
 					kids.label = this.label;
+					this.canonicals[from] = kids;
 					return kids;
 				},
 			}
