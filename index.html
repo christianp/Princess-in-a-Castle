@@ -361,6 +361,9 @@
 
 			function closePermutations(gens)
 			{
+				if(gens.length==0)
+					return [new Permutation()];
+
 				var perms = [new Permutation(),gens[0]];
 				for(var i=1;i<gens.length;i++)
 				{
@@ -814,6 +817,7 @@
 			.container {
 			}
 			.interface {
+				width: 45em;
 				float:left;
 				position:relative;
 				display:inline-block;
@@ -821,6 +825,9 @@
 				border: 2px solid #ccc;
 				margin: 0.3em;
 				padding: 0.2em;
+			}
+			#list {
+				width: 17em;
 			}
 			#graphCanvas {
 				border: 1px solid black;
