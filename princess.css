@@ -1,0 +1,79 @@
+.container {
+}
+.interface {
+	float:left;
+	position:relative;
+	display:inline-block;
+	padding: 0 1em 1em 1em;
+	border: 2px solid #ccc;
+	margin: 0.3em;
+	padding: 0.2em;
+}
+#graphCanvas {
+	border: 1px solid black;
+}
+#buttons > div {
+	margin: 0.5em 0;
+}
+#buttons button.selected {
+	color: #00f;
+}
+#buttons .label {
+	margin-right: 2em;
+	display: paragraph;
+}
+#savedCastles {
+	position: absolute;
+	right: 0;
+	text-align:right;
+	margin-right: 1em;
+	padding: 0.5em;
+	border: 1px solid black;
+}
+#savedCastles h2 {
+	margin-top: 0;
+	margin-bottom: 0.5em;
+}
+#savedCastles .name {
+	font-family: sans-serif;
+	color: magenta;
+}
+#savedCastles .name:hover {
+	cursor: hand;
+	color: blue;
+}
+
+#strategy .move {
+	font-size: 1.5em;
+	padding: 0 0.25em;
+}
+#strategy .move.repeat {
+	border: 2px solid red;
+	color: red;
+}
+#strategy .move.real:hover {
+	cursor: hand;
+	color: blue;
+}
+#strategy .move.current {
+	background: yellow;
+}
+#strategy .move.backtracked {
+	color: #ddd;
+}
+#strategy .move.done {
+	color: blue;
+}
+
+.explanation {
+	font-size: 1em;
+}
+.explanation h1 {
+	text-align: center;
+}
+.copyright {
+	clear:both;
+	text-align:center;
+	margin-top:2em;
+}
+
