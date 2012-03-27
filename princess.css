@@ -1,6 +1,7 @@
 .container {
 }
 .interface {
+	width: 45em;
 	float:left;
 	position:relative;
 	display:inline-block;
@@ -8,6 +9,9 @@
 	border: 2px solid #ccc;
 	margin: 0.3em;
 	padding: 0.2em;
+}
+#list {
+	width: 17em;
 }
 #graphCanvas {
 	border: 1px solid black;
@@ -64,16 +68,3 @@
 #strategy .move.done {
 	color: blue;
 }
-
-.explanation {
-	font-size: 1em;
-}
-.explanation h1 {
-	text-align: center;
-}
-.copyright {
-	clear:both;
-	text-align:center;
-	margin-top:2em;
-}
-

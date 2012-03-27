@@ -1,11 +1,8 @@
 paper.install(window);
 
-//make some example castles
 var defaultCastles = {"Four rooms in a line":{"rooms":{"1":{"x":58,"y":204,"links":["2"]},"2":{"x":144,"y":203,"links":["1","3"]},"3":{"x":232,"y":203,"links":["2","4"]},"4":{"x":321,"y":204,"links":["3"]}},"name":"Four rooms in a line"},"Five rooms in a line":{"rooms":{"1":{"x":42,"y":201,"links":["2"]},"2":{"x":103,"y":200,"links":["1","3"]},"3":{"x":163,"y":200,"links":["2","4"]},"4":{"x":230,"y":201,"links":["3","5"]},"5":{"x":309,"y":200,"links":["4"]}},"name":"Five rooms in a line"},"Three spokes of length 1":{"rooms":{"1":{"x":191,"y":202,"links":["2","3","4"]},"2":{"x":184,"y":148,"links":["1"]},"3":{"x":253,"y":206,"links":["1"]},"4":{"x":158,"y":250,"links":["1"]}},"name":"Three spokes of length 1"},"Three spokes of length 2":{"rooms":{"1":{"x":191,"y":202,"links":["2","3","4"]},"2":{"x":184,"y":148,"links":["1","5"]},"3":{"x":249,"y":208,"links":["1","6"]},"4":{"x":158,"y":250,"links":["1","7"]},"5":{"x":178,"y":96,"links":["2"]},"6":{"x":305,"y":216,"links":["3"]},"7":{"x":129,"y":295,"links":["4"]}},"name":"Three spokes of length 2"},"Three spokes of length 3":{"rooms":{"1":{"x":191,"y":202,"links":["2","3","4"]},"2":{"x":184,"y":148,"links":["1","5"]},"3":{"x":249,"y":208,"links":["1","6"]},"4":{"x":158,"y":250,"links":["1","7"]},"5":{"x":178,"y":96,"links":["2","8"]},"6":{"x":305,"y":216,"links":["3","9"]},"7":{"x":129,"y":295,"links":["4","10"]},"8":{"x":171,"y":53,"links":["5"]},"9":{"x":350,"y":224,"links":["6"]},"10":{"x":102,"y":337,"links":["7"]}},"name":"Three spokes of length 3"},"Binary tree - 4 deep":{"rooms":{"1":{"x":198,"y":64,"links":["2","3"]},"2":{"x":106,"y":125,"links":["1","4","5"]},"3":{"x":281,"y":122,"links":["1","6","7"]},"4":{"x":60,"y":185,"links":["2","8","9"]},"5":{"x":139,"y":187,"links":["2","10","11"]},"6":{"x":243,"y":175,"links":["3","12","13"]},"7":{"x":344,"y":175,"links":["3","14","15"]},"8":{"x":14,"y":242,"links":["4"]},"9":{"x":62,"y":251,"links":["4"]},"10":{"x":116,"y":248,"links":["5"]},"11":{"x":168,"y":251,"links":["5"]},"12":{"x":222,"y":249,"links":["6"]},"13":{"x":255,"y":246,"links":["6"]},"14":{"x":324,"y":249,"links":["7"]},"15":{"x":365,"y":246,"links":["7"]}},"name":"Binary tree - 4 deep"},"Binary tree - 3 deep":{"rooms":{"1":{"x":198,"y":64,"links":["2","3"]},"2":{"x":106,"y":125,"links":["1","4","5"]},"3":{"x":281,"y":122,"links":["1","6","7"]},"4":{"x":60,"y":185,"links":["2"]},"5":{"x":139,"y":187,"links":["2"]},"6":{"x":243,"y":175,"links":["3"]},"7":{"x":344,"y":175,"links":["3"]}},"name":"Binary tree - 3 deep"}};
 
 var state;
-
-//global list of saved castles
 var castles;
 try{
 	castles = JSON.parse(localStorage.castles || '');
@@ -356,11 +353,36 @@ Permutation.prototype = {
 
 function closePermutations(gens)
 {
+	if(gens.length==0)
+		return [new Permutation()];
+
 	var perms = [new Permutation(),gens[0]];
 	for(var i=1;i<gens.length;i++)
 	{
 		perms = perms.concat(perms.map(function(p){return gens[i].mul(p);}));
 	}
+	/*
+	for(var i=0;i<perms.length;i++)
+	{
+		for(var j=i;j<perms.length;j++)
+		{
+			var p3 = perms[i].mul(perms[j]);
+			var got = false;
+			for(var k=0;k<perms.length;k++)
+			{
+				steps++;
+				if(p3.eq(perms[k]))
+				{
+					got=true;
+					break;
+				}
+			}
+			if(!got)
+				perms.push(p3);
+		}
+	}
+	console.log(steps,' steps in closing permutation group');
+	*/
 	return perms;
 }
 
@@ -779,4 +801,3 @@ $(window).ready(function() {
 		loadCastle('Four rooms in a line');
 	}
 });
-
