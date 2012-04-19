@@ -21,6 +21,47 @@ var strategy = [];
 var automorphisms;
 var doingloads = false;
 
+function graphVizCastle() {
+	var s = '\
+graph rooms {\n\
+	rankdir = RL;\n\
+	node [shape=circle];\n\
+	';
+	for(var x in rooms) {
+		s+=x+';';
+	}
+	s+='\n';
+	for(var x in rooms) {
+		for(var y in rooms[x].links) {
+			if(x<y) {
+				s+='\t'+x+' -- '+y+';\n';
+			}
+		}
+	}
+	s+='}';
+
+	var BlobBuilder = window.WebKitBlobBuilder || window.BlobBuilder;
+	var bb = new BlobBuilder();
+	bb.append(s);
+
+	var URL = window.webkitURL || window.URL;
+
+	var a = document.createElement('a');
+	a.download = (lastName || 'castle')+'.gv';
+	var url = URL.createObjectURL(bb.getBlob('text/plain'));;
+	if(url)
+	{
+		$('a.downloadGraph').remove();
+		a.href = url;
+		$(a).text('Download castle').addClass('downloadGraph').click(function() {$(this).remove()});
+		$('#graphviz').after(a);
+	}
+	else	//createObjectURL returns undefined when page is on local filesystem
+	{
+		window.open('data:text/plain;charset=utf-8,'+encodeURI(s));
+	}
+}
+
 function makeCastle(name)
 {
 	var castle = {rooms: {}};
@@ -784,6 +825,7 @@ $(window).ready(function() {
 		}
 		backtrack(lastMove);
 	});
+	$('#graphviz').click(graphVizCastle);
 
 	makeCastleList();
 

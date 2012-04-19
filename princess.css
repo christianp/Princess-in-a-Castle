@@ -1,19 +1,13 @@
 .container {
+	margin-top: 2em;
 }
 .interface {
-	width: 45em;
-	float:left;
-	position:relative;
-	display:inline-block;
-	padding: 0 1em 1em 1em;
-	border: 2px solid #ccc;
-	margin: 0.3em;
-	padding: 0.2em;
+	text-align: center;
 }
 #list {
-	width: 17em;
 }
 #graphCanvas {
+	display: inline-block;
 	border: 1px solid black;
 }
 #buttons > div {
@@ -27,12 +21,11 @@
 	display: paragraph;
 }
 #savedCastles {
-	position: absolute;
+	position:absolute;
 	right: 0;
 	text-align:right;
 	margin-right: 1em;
 	padding: 0.5em;
-	border: 1px solid black;
 }
 #savedCastles h2 {
 	margin-top: 0;
