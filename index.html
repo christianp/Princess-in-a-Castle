@@ -22,28 +22,29 @@
 				</div>
 				<canvas id="graphCanvas" width="400" height="400"></canvas>
 				<div id="buttons">
-					<div id="construction">
-						<span class="label">Construction:</span>
+					<div id="construction" class="box">
+						<h4 class="label">Construction</h4>
 						<button class="tool" id="addroom">Add a room</button>
 						<button class="tool" id="removeroom">Remove a room</button>
 						<button class="tool" id="linkrooms">Link rooms</button>
 						<button id="clear">Clear castle</button>
 						<button id="save">Save castle</button>
 					</div>
-					<div id="playing">
-						<span class="label">Playing:</span>
+					<div id="playing" class="box">
+						<h4 class="label">Playing</h4>
 						<button class="tool" id="look">Look in a room</button>
 						<button class="tool" id="toggle">Toggle a room</button>
 						<button id="reset">Reset rooms</button>
 					</div>
-					<div id="strategy">
-						<span class="label">Strategy</span>
+					<div id="strategy" class="box">
+						<h4 class="label">Strategy</h4>
 					</div>
-					<div id="controls">
-						<span class="label">Animation speed:</span>
+					<div id="controls" class="box">
+						<h4 class="label">Animation speed</h4>
 						<input type="range" id="animtime" min="1" max="100"/>
 					</div>
-					<div id="output">
+					<div id="output" class="box">
+						<h4 class="label">Save</h4>
 						<button id="snapshot">Save snapshot of current state</button>
 						<button id="snapshots">Save snapshots of whole strategy</button>
 						<button id="graphviz">graphViz file</button>

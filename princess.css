@@ -1,17 +1,21 @@
-.container {
-	margin-top: 2em;
+body {
+	padding: 1em 1em;
+	min-width: 450px;
 }
-.interface {
-	text-align: center;
+
+h2,h3,h4,h5,h6 {
+	margin-top: 0;
+	margin-bottom: 1em;
 }
-#list {
+
+.box {
+	margin-bottom: 1em;
 }
+
 #graphCanvas {
 	display: inline-block;
 	border: 1px solid black;
-}
-#buttons > div {
-	margin: 0.5em 0;
+	margin: 1em 0;
 }
 #buttons button.selected {
 	color: #00f;
@@ -19,17 +23,6 @@
 #buttons .label {
 	margin-right: 2em;
 	display: paragraph;
-}
-#savedCastles {
-	position:absolute;
-	right: 0;
-	text-align:right;
-	margin-right: 1em;
-	padding: 0.5em;
-}
-#savedCastles h2 {
-	margin-top: 0;
-	margin-bottom: 0.5em;
 }
 #savedCastles .name {
 	font-family: sans-serif;
@@ -60,4 +53,21 @@
 }
 #strategy .move.done {
 	color: blue;
+}
+
+
+@media (min-width: 850px) {
+	.interface {
+		text-align: center;
+	}
+
+	#savedCastles {
+		position:absolute;
+		right: 0;
+		text-align:right;
+		margin-right: 1em;
+		padding: 0.5em;
+	}
+
+
 }
