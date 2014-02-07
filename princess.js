@@ -451,7 +451,7 @@ function Room(position,label)
 	rooms[this.label] = this;
 
 	this.symbol = this.symbol.clone();
-	this.symbol.children['text'].content = this.label;
+	this.symbol.children['text 1'].content = this.label;
 	this.symbol.position = this.position;
 	this.symbol.visible = true;
 	layers.room.addChild(this.symbol); 
@@ -489,7 +489,7 @@ Room.prototype = {
 		{
 			this.occupiable = !this.occupiable;
 		}
-		this.symbol.children.circle.fillColor.gray = this.occupiable ? 0 : 0.5;
+		this.symbol.children.circle.fillColor.gray = this.occupiable ? 1 : 0.5;
 	},
 
 	die: function()
@@ -566,9 +566,11 @@ Room.animate = function(moved) {
 	anim = function(event) {
 		for(var x in rooms)
 		{
-			var g1 = rooms[x].occupiable ? 0 : .5;
-			var g2 = rooms[x].occupiable2 ? 0 : .5;
+			var g1 = rooms[x].occupiable ? 1 : .5;
+			var g2 = rooms[x].occupiable2 ? 1 : .5;
 			rooms[x].symbol.children.circle.fillColor.gray = g1*(1-t)+g2*t;
+			if(x==2)
+				console.log(g1,g2);
 		}
 		for(var i=0;i<princesses.length;i++)
 		{
