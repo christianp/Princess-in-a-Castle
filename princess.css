@@ -54,20 +54,3 @@ h2,h3,h4,h5,h6 {
 #strategy .move.done {
 	color: blue;
 }
-
-
-@media (min-width: 850px) {
-	.interface {
-		text-align: center;
-	}
-
-	#savedCastles {
-		position:absolute;
-		right: 0;
-		text-align:right;
-		margin-right: 1em;
-		padding: 0.5em;
-	}
-
-
-}
